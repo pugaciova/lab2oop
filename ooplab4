@@ -1,0 +1,335 @@
+#include <assert.h>
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+
+template <typename T>
+inline
+void swap(T& a, T& b)
+{
+    T tmp(a);
+    a = b;
+    b = tmp;
+}
+
+template <typename T>
+struct container
+{
+    T size() const {return length;};
+    unsigned int size_() const
+    {
+        return sizeof(value);
+    }
+    T front() const {return value[0];};
+    T back() const{return value[(length-1)];};
+    T norm() const
+    {
+        T sum = T();
+        for(unsigned int i = 0; i < length; i++)
+            sum = sum + value[i];
+        return sum;
+    };
+    friend bool operator==(const container &lhs, const container &rhs)
+    {
+        for(size_t i=0; i < lhs.length; i++)
+
+           return lhs[i]==rhs[i];
+        return true;
+
+    };
+    friend bool operator!=(const container &lhs, const container &rhs)
+    {
+        for(size_t i=0; i < lhs.length; i++)
+
+           return !(lhs[i]==rhs[i]);
+
+    };
+    friend bool operator<(const container &lhs, const container &rhs)
+    {
+        return lhs.norm()<rhs.norm();
+    };
+    friend bool operator>(const container &lhs, const container &rhs)
+    {
+        return lhs.norm()>rhs.norm();
+    };
+    friend bool operator<=(const container &lhs, const container &rhs)
+    {
+        return !(lhs.norm()>rhs.norm());
+    };
+    friend bool operator>=(const container &lhs, const container &rhs)
+    {
+        return !(rhs.norm()<lhs.norm());
+    };
+    friend std::ostream &operator<<(std::ostream &os, const container &object)
+    {
+        for(size_t i=0; i < object.length; i++)
+        {
+        os<<object.value[i]<<" ";
+        }
+        return os;
+    };
+    friend std::istream &operator>>(std::istream &is, container &object)
+    {
+        for(size_t i=0; i < object.length; i++)
+        {
+        is>>object.value[i];
+        }
+        return is;
+    };
+    void insert(const unsigned int index, const T x)
+    {
+        length = length+1;
+        unsigned int idx = (index>=length)?length - 1:index;
+       T * temp = new T[length];
+       unsigned int i=0;
+       for(;i<idx;i++)
+       {
+         temp[i]=value[i];
+       }
+
+       for(int j=i, shift=0;j<length;j++){
+           temp[j]=value[j-shift];
+           shift=1;
+       }
+       temp[idx]=x;
+       delete[] value;
+       value = temp;
+       temp = nullptr;
+    };
+    void append(const T x)
+    {
+        T * temp = new T[length+1];
+        for(int i=0;i<length;i++)
+        {
+          temp[i]=value[i];
+
+        }
+        length = length+1;
+        temp[length-1]=x;
+
+         delete[] value;
+         value = temp;
+         temp = nullptr;
+    };
+
+    int * CharToInt(T *str)
+    {
+        int * array = new int [sizeof (str)];
+        int result = 0;
+        while(*str!='\0')
+        {
+            result*=10;
+            result+=*str-'0';
+            ++str;
+        }
+        for(unsigned int i=0; i<length; i++)
+        {
+          array[i]=str[i];
+        }
+
+        return array;
+    }
+    void extend(const container &other){
+      
+        T * array = new T [length+other.length];
+        unsigned int i=0;
+          for(; i<length; i++)
+          {
+            array[i]=value[i];
+          }
+
+          for(unsigned int j=0; i<length+other.length; i++)
+          {
+            array[i]=other.value[j];
+            j++;
+          }
+          length+=other.length;
+          delete [] value;
+          value = array;
+
+    };
+    int pop(const T q)
+    {
+        assert(length > 0);
+               unsigned int idx = (q < length) ? q : length - 1;
+               int res = value[idx];
+               T *tmp = new T[length - 1];
+               for (unsigned short i = 0; i < idx; ++i){
+                   if(idx<length){
+                   tmp[i] = value[i];
+                   }
+               }
+               for (unsigned short i = idx; i < length - 1; ++i)
+                   tmp[i] = value[i + 1];
+               delete[] value;
+               value = tmp;
+               --length;
+               return res;
+     };
+    void remove(T x)
+    {
+        assert(length > 0);
+
+      unsigned int idx = this->index(x);
+      if (idx == length) return;
+
+      T *tmp = new T [length - 1];
+      for (unsigned short i = 0; i < idx; ++i) tmp[i] = value[i];
+      for (unsigned short i = idx; i < length - 1; ++i) tmp[i] = value[i+1];
+      delete [] value;
+      value = tmp;
+      --length;
+      //return res;
+    };
+    unsigned int index(const T x) const
+    {
+        for(unsigned int i=0; i<length; i++)
+        {
+            if (value[i] == x) return i;
+        }
+        return length;
+    };
+    T count(const T x) const
+    {
+        T c = std::count(value, (value+length), x);
+        return c;
+    };
+
+    T &operator[](const int idx)
+    {
+        if(idx<0)
+        {
+        return (-idx > length) ? value[0] : value[length + idx];
+        }
+        if(idx >= length)
+            return value[length-1];
+        return value[idx];
+    };
+    const T operator[](const unsigned int idx) const
+    {
+        if(idx<0)
+        {
+        return (-idx > length) ? value[0] : value[length + idx];
+        }
+        if(idx >= length)
+            return value[length-1];
+        return value[idx];
+    };
+
+    T &operator=(const container &other)
+    {
+        if (this == &other) return *this;
+        delete [] value;
+        value = new T [other.length];
+        for(size_t i=0; i < other.length; i++)
+        {
+            value[i]=other.value[i];
+        }
+        length=other.length;
+        return *this;
+};
+    container(){}
+    container(const container<T> &other): length(other.length), value(new int[other.length])
+    {
+        if (other.length <= 0) return;
+        for(unsigned int i=0; i<other.length; i++)
+        {
+            value[i] = other.value[i];
+        }
+    }
+
+
+    container(const int n)
+    {
+        length = n;
+        value = new T [n];
+    }
+
+    container(const T *x, const T n):length(n),value(new T[n])
+    {
+                std::copy(x, x+n, value);
+    }
+
+    template<unsigned int n>
+    container(const T(&x)[n])
+    {
+        value = new T [length+n];
+        length += n;
+        for(unsigned int i=0; i<length; i++)
+        {
+            value[i] = x[i];
+        }
+    }
+    container(const std::initializer_list<T> (&x))
+    {
+        value=new T[length+x.size()];
+        length+=x.size();
+        std::copy(x.begin(),x.end(), value);
+    }
+
+    ~container()
+    {
+        delete[] value;
+    }
+private:
+    T *value{nullptr};
+    unsigned int length{0};
+};
+
+
+int main(int argc, char const *argv[])
+{
+    container<int> a({2, 3, 5, 7});
+
+    a.append(11);
+    assert(11 == a[a.size() - 1]);
+
+    a.insert(0, 1);
+    assert(1 == a[0]);
+
+    a.extend(container<int>({13, 17, 19}));
+    //assert(6 == a.index(13));
+    a.remove(19);
+    assert(0 == a.count(19));
+    assert(8 == a.size());
+
+    std::cout << a;
+
+    container<int> b(a);
+    assert(a == b);
+
+    b[0] = 0;
+    assert(0 == b.front());
+    assert(17 == b.pop(20));
+    assert(13 == b.back());
+
+    std::cout << b;
+
+    container<char> c = "abra";
+    assert(0 == c.back());
+    assert(0 == c.pop(c.size()));
+
+    c.append('c');
+    assert('c' == c[c.size() - 1]);
+
+    c.insert(c.size(), 'a');
+    assert(0 == c.count(0));
+    assert(6 == c.size());
+
+    c.extend(container<char>("dabra"));
+    assert(c.size() - 1 == c.index(0));
+    assert(1 == c.count(0));
+    assert(12 == c.size());
+
+    c[0] = 'A';
+    assert('A' == c.front());
+
+    std::cout << c;
+
+    container<std::string> d({"Hello", "world"});
+    assert("Helloworld" == d.norm());
+    d[0].append(",");
+    d[1].append("!");
+
+    std::cout << d;
+}
