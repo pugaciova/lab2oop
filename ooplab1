@@ -1,0 +1,104 @@
+#include <assert.h>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+
+struct pod
+{
+    int *value{nullptr};
+    unsigned int length{0};
+};
+
+void make_copy(pod & a, const pod & b)
+{
+   a.length = b.length;
+   delete [] a.value;
+   a.value = nullptr;
+   a.value = new int [b.length];
+   for(unsigned int i=0; i<b.length; i++)
+   {
+       a.value[i] = b.value[i];
+   }
+}
+bool is_equal(const pod & a, const pod & b)
+{
+    if(a.length != b.length)
+    {
+        return false;
+    }
+    for(unsigned int i=0; i<b.length; i++)
+    {
+        if(a.value[i] = b.value[i]) return true;
+    }
+
+    
+}
+int at(const pod & a, const int i)
+{
+    if(a.length <= 0)
+        return 0;
+    if(i < 0)
+        return (-i > a.length) ? a.value[0] : a.value[a.length + i];
+    if(i >= a.length)
+        return a.value[a.length-1];
+
+    return a.value[i];
+};
+
+void make_from_array(pod & a, const int * arr, const unsigned int num)
+{
+    delete [] a.value;
+    a.value = nullptr;
+    a.value = new int [num];
+    a.length = num;
+    std::copy(arr, arr+num, a.value);
+
+};
+
+void make_of_size(pod & a, const unsigned int n)
+{
+    delete [] a.value;
+    a.length = n;
+    a.value = nullptr;
+    a.value = new int [n];
+};
+
+void make_empty(pod & a)
+{
+    a.length = 0;
+};
+
+void clear(pod & a)
+{
+    delete [] a.value;
+    a.value = nullptr;
+    a.length = 0;
+};
+
+int main(int argc, char const *argv[])
+{
+    int array[] = {1, 4, 7, 9};
+
+    pod a;
+    make_empty(a);
+    make_from_array(a, array, 4);
+
+    assert(9 == at(a, 3));
+    assert(9 == at(a, -1));
+    assert(9 == at(a, 13));
+    assert(1 == at(a, -13));
+
+    pod b;
+    make_empty(b);
+    make_copy(b, a);
+
+    assert(1 == *(b.value));
+    assert(9 == *(b.value + b.length - 1));
+
+    assert(is_equal(a, b));
+
+    clear(a);
+    clear(b);
+    
+   
+}
