@@ -1,0 +1,215 @@
+#include <assert.h>
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <cstring>
+
+struct container
+{
+    unsigned int size() const
+    {
+        return length;
+    }
+
+    int front() const
+    {
+        assert(length);
+        return value[0];
+    }
+
+    int back() const
+    {
+        assert(length);
+        return value[length - 1];
+    }
+
+    void insert(const unsigned int idx, const int x)
+    {
+        length = length + 1;
+        int *temp = new int[length];
+        for (unsigned int i = 0, shift = 0; i < length + 1; i++)
+        {
+            temp[i] = value[i - shift];
+            temp[idx] = x;
+            shift = 1;
+        }
+        delete[] value;
+        value = temp;
+        temp = nullptr;
+    }
+
+    // friend void append(const int x);
+    void append(const int x)
+    {
+        // выделить память надо
+        value[length] = x;
+        ++length;
+    }
+    // friend void extend(const container &other);
+    void extend(const container &other)
+    {
+        int *array = new int[length + other.length];
+        unsigned int i = 0;
+        for (; i < length; i++)
+        {
+            array[i] = value[i];
+        }
+
+        for (unsigned int j = 0; i < length + other.length; i++)
+        {
+            array[i] = other.value[j];
+            j++;
+        }
+        length += other.length;
+        delete[] value;
+        value = array;
+    }
+    int pop(const unsigned int q)
+    {
+        assert(length > 0);
+        unsigned int idx = (q < length) ? q : length - 1;
+        int res = value[idx];
+        int *tmp = new int[length - 1];
+        for (unsigned short i = 0; i < idx; ++i)
+            // здесь не проверяется idx < length
+            tmp[i] = value[i];
+        for (unsigned short i = idx; i < length - 1; ++i)
+            tmp[i] = value[i + 1];
+        delete[] value;
+        value = tmp;
+        --length;
+        return res;
+    }
+    void remove(const int x)
+    {
+        //        int i = 0;
+        //            while(i<length)
+        //            {
+        //                if (value[i]==x)
+        //                {
+        //                    for(int j=i; j<length-1; j++)
+        //                        value[j]=value[j+1];
+        //                    length--;
+        //                }
+        //                else
+        //                {
+        //                  i++;
+        //                }
+        //            }
+
+        assert(length > 0);
+        // int res = value[(idx < length) ? idx : length - 1];
+        int *tmp = new int[length - 1];
+        for (unsigned int i = 0; i < length; ++i)
+            tmp[i] = value[i];
+        for (unsigned int i = 0; i < length - 1; ++i)
+            tmp[i] = value[i + 1];
+        delete[] value;
+        value = tmp;
+        --length;
+    }
+    unsigned int index(const int x) const
+    {
+        for (unsigned int i = 0; i < length; i++)
+        {
+            if (value[i] == x)
+                return i;
+        }
+        return length;
+    }
+    unsigned int count(const int x) const
+    {
+        return std::count(value, value + length, x);
+    }
+    static bool is_equal(const container &dest, const container &other)
+    {
+        if (other.length != dest.length) return false;
+        
+
+            for (unsigned int i = 0; i < other.length; i++)
+            {
+                if (other.value[i] != dest.value[i])
+                    return false;
+            }
+        
+        return true;
+    }
+    int at(const int idx) const
+    {
+        if (length == 0)
+            return 0;
+        if (idx < 0)
+            return (-idx > length) ? value[0] : value[length + idx];
+        if (idx >= length)
+            return value[length - 1];
+
+        return value[idx];
+    }
+
+    container() {}
+    container(const container &other) : value(new int[other.length]), length(other.length)
+    {
+        if (other.length <= 0)
+            return;
+        for (unsigned int i = 0; i < other.length; i++)
+        {
+            value[i] = other.value[i];
+        }
+    }
+    container(const unsigned int n)
+    {
+        length = n;
+        value = new int[n];
+    }
+    container(const int *x, const unsigned int n) : value(new int[n]), length(n)
+    {
+        std::copy(x, x + n, value);
+    }
+    ~container()
+    {
+        delete[] value;
+    }
+
+private:
+    int *value{nullptr};
+    unsigned int length{0};
+};
+
+int main(int argc, char const *argv[])
+{
+    int array[] = {1, 4, 7, 9};
+
+    container a(array, 4);
+
+    container b(a);
+    a.append(10);
+    assert(1 == a.front());
+    assert(10 == a.back());
+    assert(10 == a.at(10));
+
+    b.insert(0, 10);
+    assert(10 == b.front());
+    assert(1 == b.at(1));
+    assert(9 == b.back());
+
+    container c;
+    c.extend(b);
+    assert(container::is_equal(c, b));
+    assert(0 == c.index(10));
+
+    a.extend(c);
+    assert(2 == a.count(10));
+    assert(9 == a.pop(20));
+    assert(1 == a.pop(0));
+    assert(7 == a.back());
+
+    a.remove(4);
+    assert(9 == a.at(1));
+    assert(7 == a.at(-1));
+    assert(7 == a.size());
+
+    for (unsigned int i = 0; i < a.size(); i++)
+    {
+        std::cout << a.at(i) << " ";
+    }
+}
